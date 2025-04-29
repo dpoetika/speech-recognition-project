@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
+
+# PyInstaller
+dist/
+build/
+*.spec
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# Log files
+*.log
+
+# Data
+/data/processed/*
+/data/raw/*
+!/data/processed/.gitkeep
+/data/raw/.gitkeep
+models/
+example/
