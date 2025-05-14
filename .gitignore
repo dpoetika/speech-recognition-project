@@ -23,11 +23,9 @@ build/
 
 # Log files
 *.log
-
+*.tar
 # Data
 /data/processed/*
 /data/raw/*
-!/data/processed/.gitkeep
-/data/raw/.gitkeep
 models/
 example/

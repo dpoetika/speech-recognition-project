@@ -24,7 +24,7 @@ def decode_predictions(log_probs, chars=CHARS, blank_idx=CHAR_TO_IDX["<blank>"])
         decoded_texts.append("".join(current_text))
     return decoded_texts
 
-def test_model(obj,model_path="./models/model.pth", test_data_dir="data/processed/test"):
+def test_model(obj,model_path="./models/modeliki.pth", test_data_dir="data/processed/train"):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Modeli yükle

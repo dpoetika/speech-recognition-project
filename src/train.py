@@ -1,4 +1,3 @@
-
 import os
 from matplotlib import pyplot as plt
 import torch
@@ -57,14 +56,13 @@ def train_model():
     Y = 0
     train_dataset = SpeechDataset("data/processed/train")
     #train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=3, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=2, pin_memory=True)
 
 
     model = SpeechModel(num_features=80, num_classes=len(CHARS)).to(device)
     criterion = nn.CTCLoss(blank=CHAR_TO_IDX["<blank>"], zero_infinity=True)
     #optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
 
     for epoch in range(num_epochs):
         model.train()
@@ -96,7 +94,7 @@ def train_model():
 
 
             total_loss += loss.item()
-            if (batch_idx + 1) % 10 == 0:
+            if (batch_idx + 1) % 1000 == 0:
                 print(f"Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
                 x.append(loss.item())
                 Y += 1

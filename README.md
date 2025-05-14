@@ -17,9 +17,12 @@ Bu proje, Türkçe dilinde konuşma tanıma (ASR - Automatic Speech Recognition)
 speech-recognition-project/
 │
 ├── data/
-│   └── processed/
-│       └── train/             # .npy ve .txt veri dosyaları (örnek: 0_features.npy, 0_transcription.txt)
-│
+│   ├── processed/
+│   │   ├── train/             # .npy ve .txt veri dosyaları (örnek: 0_features.npy, 0_transcription.txt)
+│   │   └── test/
+│   ├── raw/
+│   │   ├── clips/             # .npy ve .txt veri dosyaları (örnek: 0_features.npy, 0_transcription.txt)
+│   └   └── validated.tsv
 ├── models/                    # Eğitilen modellerin kaydedildiği klasör
 │
 ├── src/
@@ -28,8 +31,8 @@ speech-recognition-project/
 │   └── ...                    # Diğer yardımcı modüller
 │
 ├── requirements.txt           # Gerekli Python kütüphaneleri
-├── README.md                  # Bu dosya
-└── .gitignore                 # Git'e dahil edilmeyecek dosyalar
+├── README.md                  
+└── .gitignore                 
 ```
 
 ## Gereksinimler
