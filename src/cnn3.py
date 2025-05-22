@@ -183,11 +183,22 @@ def train():
 
     train_dataset = CommonVoiceDataset(train_tsv, audio_folder, augment=True)  # Data Augmentation
     vocab_size = len(train_dataset.char2idx)
+    print(vocab_size)
+
+
+    import json
+
+    with open('vocab.json', 'w', encoding='utf-8') as f:
+        json.dump(train_dataset.char2idx, f, ensure_ascii=False)
+    print("tamam")
+
+
+
 
     train_loader = DataLoader(
     train_dataset,
-    batch_size=8,
-    num_workers=3,  # CPU çekirdek sayısı kadar
+    batch_size=32,
+    num_workers=1,  # CPU çekirdek sayısı kadar
     pin_memory=False,  # CPU'da True yapma!
     persistent_workers=True,
     prefetch_factor=2,  # Veriyi avans çek
@@ -197,22 +208,41 @@ def train():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = SimpleASRModel(vocab_size).to(device)
     
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=2, factor=0.5)  # Learning rate scheduler
     criterion = nn.CTCLoss(blank=0, zero_infinity=True)
 
-    num_epochs = 5
+    num_epochs = 50
     loss_list = []
     accuracy_list = []
 
     best_val_loss = float('inf')
-    for epoch in range(num_epochs):
+    start_epoch = 0
+    checkpoint_path = "C:/Users/nebul/Desktop/python/audio/speech-recognition-project/checkpoint.pth"
+    if os.path.exists(checkpoint_path):
+        print("Checkpoint bulundu. Yükleniyor...")
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        best_val_loss = checkpoint['loss']
+        print(f"{start_epoch}. epoch'tan devam ediliyor.")
+    else:
+        best_val_loss = float('inf')
+        print("Checkpoint bulunamadı. Sıfırdan başlanıyor.")
+
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = 0.0001
+    for epoch in range(start_epoch, num_epochs):
+
+        sure = 0
         model.train()
         total_loss = 0
         total_accuracy = 0
         num_samples = 0
 
         for batch_idx, (waveforms, targets, input_lengths, target_lengths) in enumerate(train_loader):
+            baslangic = time.time()
             waveforms = waveforms.to(device)
             targets = targets.to(device)
             
@@ -240,8 +270,11 @@ def train():
                 char_acc = correct_chars / max(len(target_text), 1)
                 total_accuracy += char_acc
                 num_samples += 1
-
-            print(f"\rEpoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}", end="")
+            sure += time.time() - baslangic
+            bitis = sure/(batch_idx +1)
+            tahmin = bitis * (len(train_loader)-batch_idx-1) / 3600
+            if batch_idx > 1:
+                print(f"\rEpoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f} {(total_loss / (batch_idx +1)):.4f}, Bitiş : {tahmin:.2f} Saat,{pred_text} ", end="")
 
         # Learning rate scheduler
         scheduler.step(total_loss / len(train_loader))
@@ -253,11 +286,19 @@ def train():
 
         print(f"\nEpoch [{epoch+1}/{num_epochs}] Finished | Avg Loss: {avg_loss:.4f} | Avg Accuracy: {avg_acc:.3f}")
 
+        
         # Model checkpointing
         if avg_loss < best_val_loss:
             best_val_loss = avg_loss
-            torch.save(model.state_dict(), 'best_asr_model.pth')
-            print("Saved best model.")
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': avg_loss,
+                'vocab': train_dataset.char2idx
+            }, 'checkpoint.pth')
+            print("Saved checkpoint.")
+
 
     # === Grafik ===
     plt.figure(figsize=(12, 4))
